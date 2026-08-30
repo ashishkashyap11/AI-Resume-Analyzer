@@ -25,7 +25,7 @@ from utils.job_matcher import match_resume_to_job, match_all_jobs, get_job_list
 # ──────────────────────────────────────────────────────────────
 
 app = Flask(__name__)
-app.secret_key = 'eduvitae-resume-analyzer-2025'
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
