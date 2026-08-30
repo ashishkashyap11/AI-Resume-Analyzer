@@ -251,17 +251,22 @@ The app will start on `http://localhost:5000`
 
 ## 📸 Screenshots
 
-### Home Page - Upload Interface
-![Home Page - Upload your resume and select target job role](https://via.placeholder.com/800x450/4f46e5/ffffff?text=Upload+Interface+-+Add+Screenshot+Here)
+### 1. Home / Upload Interface
+![Home Page - Upload your resume and select target job role](https://via.placeholder.com/800x450/4f46e5/ffffff?text=1.+Home+%2F+Upload+Interface+-+Add+Screenshot+Here)
 
-*The landing page features a clean upload interface with drag-and-drop support and job role selection.*
+*The landing page features a clean drag-and-drop resume upload zone (PDF/DOCX) with single or multi-role job target selection.*
 
-### Analysis Results Dashboard
-![Results Dashboard - Comprehensive match analysis with scores and recommendations](https://via.placeholder.com/800x450/10b981/ffffff?text=Results+Dashboard+-+Add+Screenshot+Here)
+### 2. Resume Match Analysis Result
+![Results Dashboard - Comprehensive match analysis with scores](https://via.placeholder.com/800x450/10b981/ffffff?text=2.+Match+Analysis+Result+-+Add+Screenshot+Here)
 
-*The results page displays match scores, skill breakdowns, gap analysis, and actionable recommendations.*
+*Detailed match score breakdown combining TF-IDF content similarity, required skills, and preferred skills.*
 
-> **Note:** Screenshots will be added after deployment. The application features a modern, responsive design with Bootstrap 5.
+### 3. Skill-Gap Analysis & Actionable Recommendations
+![Skill Gap Analysis and Recommendations](https://via.placeholder.com/800x450/f59e0b/ffffff?text=3.+Skill+Gap+Dashboard+%26+Tips+-+Add+Screenshot+Here)
+
+*Visual badges for matched vs. missing skills, plus targeted recommendations for improving candidate competitiveness.*
+
+> **Tip for Recruiters:** To run the live application locally and view the UI, follow the [Installation](#installation) steps. Real screenshots can be added to `/screenshots` after local testing or cloud deployment.
 
 ---
 
