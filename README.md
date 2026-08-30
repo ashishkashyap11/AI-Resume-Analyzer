@@ -58,11 +58,13 @@ This project was built to solve a real-world problem: helping candidates optimiz
 
 ### **Backend**
 - **Python 3.8+** — Core programming language
-- **Flask 3.0.0** — Web framework
-- **Scikit-learn 1.3.2** — TF-IDF vectorization, cosine similarity
-- **NLTK 3.8.1** — Natural Language Processing
+- **Flask 3.0.3** — Web framework
+- **Sentence-Transformers 2.2.2+** — Semantic similarity using pre-trained embeddings
+- **Scikit-learn 1.5.1** — TF-IDF vectorization, cosine similarity
+- **PyTorch 2.0.0+** — Deep learning backend for sentence-transformers
+- **NLTK 3.9.1** — Natural Language Processing & tokenization
 - **PyPDF2 3.0.1** — PDF text extraction
-- **python-docx 1.1.0** — DOCX text extraction
+- **python-docx 1.1.2** — DOCX text extraction
 - **Pandas & NumPy** — Data manipulation
 
 ### **Frontend**
@@ -73,54 +75,82 @@ This project was built to solve a real-world problem: helping candidates optimiz
 
 ---
 
-## 🔬 How It Works
+## 🔬 How It Works (Hybrid Matching Architecture)
+
+This project uses a **Hybrid Matching Architecture** that combines the strengths of deep-learning semantic embeddings with exact keyword-based TF-IDF vectorization.
+
+```
+┌─────────────────┐       ┌────────────────────────────────────────────────────────┐
+│  Upload Resume  │ ────> │ NLP Parsing Engine: Contact, Skills, Edu, Experience   │
+│   (PDF / DOCX)  │       │ (PyPDF2, python-docx, NLTK)                            │
+└─────────────────┘       └────────────────────────────────────────────────────────┘
+                                                       │
+                           ┌───────────────────────────┴───────────────────────────┐
+                           ▼                                                       ▼
+       ┌──────────────────────────────────────┐                ┌──────────────────────────────────────┐
+       │   Semantic Similarity (35%)          │                │   TF-IDF Keyword Match (30%)         │
+       │   Sentence-Transformers              │                │   Scikit-Learn                       │
+       │   (all-MiniLM-L6-v2, 384 dimensions) │                │   (Unigrams + Bigrams, 5000 feats)   │
+       └──────────────────────────────────────┘                └──────────────────────────────────────┘
+                           │                                                       │
+                           └───────────────────────────┬───────────────────────────┘
+                                                       ▼
+                               ┌───────────────────────────────────────────────┐
+                               │   Skill Gap Analysis                          │
+                               │   - Required Skills Match (25%)               │
+                               │   - Preferred Skills Match (10%)              │
+                               └───────────────────────────────────────────────┘
+                                                       │
+                                                       ▼
+                               ┌───────────────────────────────────────────────┐
+                               │   Configurable Hybrid Score (0 - 100%)        │
+                               │   + Actionable Recommendations                │
+                               └───────────────────────────────────────────────┘
+```
 
 ### **1. Resume Parsing**
-- Extracts text from PDF/DOCX files
+- Extracts raw text from PDF/DOCX files
 - Uses regex patterns and NLTK to identify:
   - Contact information (email, phone, LinkedIn, GitHub)
   - Technical & soft skills (matched against a curated database of 200+ skills)
   - Education (degrees, universities, CGPA)
-  - Experience sections
-  - Certifications
+  - Experience sections & Certifications
 
-### **2. TF-IDF Vectorization**
-- Converts resume text and job description into numerical vectors
-- Uses `TfidfVectorizer` with unigrams and bigrams
-- Captures term frequency and importance across documents
+### **2. Semantic Matching (Sentence-Transformers)**
+- **Model:** `all-MiniLM-L6-v2` (~80MB, 384-dimensional dense vectors)
+- Maps the entire resume and job description into high-dimensional semantic space
+- Captures **meaning and context** even when different vocabulary is used (e.g., *"neural networks"* matches *"deep learning"*, *"predictive algorithms"* matches *"machine learning"*)
+- Calculates Cosine Similarity between the two dense embeddings
 
-### **3. Cosine Similarity Calculation**
+### **3. TF-IDF Keyword Matching (Scikit-Learn)**
+- Converts texts into sparse n-gram frequency matrices (unigrams + bigrams)
+- Measures exact keyword and technical terminology overlap
+- Ensures specialized tools and domain jargon are precisely matched
+
+### **4. Configurable Hybrid Scoring Formula**
 ```python
-similarity = cosine_similarity(resume_vector, job_vector)
-```
-- Measures the angle between two vectors (0 = no similarity, 1 = identical)
-- Converted to percentage (0-100%)
-
-### **4. Scoring Algorithm**
-```python
-Overall Score = (TF-IDF Score × 0.40) + (Required Skills Match × 0.45) + (Preferred Skills Match × 0.15)
+Hybrid Score = (Semantic Score × 0.35) + (TF-IDF Score × 0.30) + (Required Skills × 0.25) + (Preferred Skills × 0.10)
 ```
 
-| Weight | Component | Description |
-|--------|-----------|-------------|
-| 40% | TF-IDF Content Similarity | How well resume keywords match job description |
-| 45% | Required Skills Match | Percentage of required skills found in resume |
-| 15% | Preferred Skills Match | Percentage of preferred skills found in resume |
+| Weight | Component | Role | Why It Matters |
+|--------|-----------|------|----------------|
+| **35%** | **Semantic Similarity** | Meaning & Context | Prevents penalizing candidates who describe identical experience with different phrasing |
+| **30%** | **TF-IDF Similarity** | Exact Keywords | Ensures critical industry terminology and specific tooling are present |
+| **25%** | **Required Skills Match** | Core Competencies | Evaluates direct alignment with mandatory technical requirements |
+| **10%** | **Preferred Skills Match** | Bonus Qualifications | Awards extra points for competitive edge skills |
+
+*Note: Weights are configurable in `utils/job_matcher.py` via `DEFAULT_SCORING_WEIGHTS`.*
 
 ### **5. Skill Gap Analysis**
-- Compares resume skills against job requirements
+- Compares resume skills directly against the job profile's required and preferred requirements
 - Categorizes skills as:
-  - ✅ **Matched Required** (critical for the role)
-  - ❌ **Missing Required** (high priority to learn)
-  - ✅ **Matched Preferred** (gives competitive edge)
-  - 🟡 **Missing Preferred** (nice to have)
+  - ✅ **Matched Required** (essential competencies verified)
+  - ❌ **Missing Required** (high-priority learning opportunities)
+  - ✅ **Matched Preferred** (competitive advantage)
+  - 🟡 **Missing Preferred** (recommended additions)
 
 ### **6. Recommendations Engine**
-Generates personalized suggestions based on:
-- Missing required skills
-- Missing preferred skills
-- Overall match score
-- Resume optimization tips
+Generates targeted improvement tips based on missing skills, keyword frequency, and overall match health.
 
 ---
 

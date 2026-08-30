@@ -70,9 +70,26 @@
                 </div>
                 <div class="col-md-8">
                     <h5 class="fw-bold mb-3">Score Breakdown</h5>
+                    {% if job_match.is_hybrid %}
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
-                            <span>TF-IDF Content Similarity</span>
+                            <span>
+                                <i class="fas fa-brain me-1 text-primary"></i>Semantic Similarity
+                                <small class="text-muted">(meaning & context)</small>
+                            </span>
+                            <span class="fw-bold">{{ job_match.semantic_score }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-primary" style="width: {{ job_match.semantic_score }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>
+                                <i class="fas fa-key me-1 text-info"></i>TF-IDF Keyword Match
+                                <small class="text-muted">(exact terminology)</small>
+                            </span>
                             <span class="fw-bold">{{ job_match.tfidf_score }}%</span>
                         </div>
                         <div class="progress" style="height: 10px;">
@@ -81,13 +98,21 @@
                     </div>
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Required Skills Match</span>
+                            <span>
+                                <i class="fas fa-check-circle me-1 text-success"></i>Required Skills Match
+                            </span>
                             <span class="fw-bold">{{ job_match.skill_analysis.required_match_percentage }}%</span>
                         </div>
                         <div class="progress" style="height: 10px;">
                             <div class="progress-bar bg-success" style="width: {{ job_match.skill_analysis.required_match_percentage }}%"></div>
                         </div>
                     </div>
+                    {% if job_match.is_hybrid %}
+                    <div class="alert alert-info py-2 px-3 small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Hybrid Matching:</strong> This score combines semantic understanding with keyword precision. Model: <code>{{ job_match.model_used }}</code>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -156,9 +181,10 @@
                             <th>#</th>
                             <th>Job Role</th>
                             <th>Company</th>
-                            <th>Overall Match</th>
-                            <th>Required Skills Match</th>
-                            <th>TF-IDF Score</th>
+                            <th>Hybrid Match</th>
+                            <th>Semantic</th>
+                            <th>TF-IDF</th>
+                            <th>Required Skills</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -176,8 +202,9 @@
                                     </div>
                                 </div>
                             </td>
+                            <td><span class="badge bg-primary-subtle text-primary">{{ match.semantic_score }}%</span></td>
+                            <td><span class="badge bg-info-subtle text-info-emphasis">{{ match.tfidf_score }}%</span></td>
                             <td>{{ match.skill_analysis.required_match_percentage }}%</td>
-                            <td>{{ match.tfidf_score }}%</td>
                             <td>
                                 <span class="badge bg-{{ match.score_label.color }}">
                                     {{ match.score_label.emoji }} {{ match.score_label.label }}

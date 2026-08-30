@@ -1,10 +1,10 @@
 """
 Job Matcher Module
-Matches resumes against job descriptions using:
-- TF-IDF Vectorization
-- Cosine Similarity
-- Skill Gap Analysis
-- Scoring & Recommendations
+Matches resumes against job descriptions using a HYBRID approach:
+1. Semantic Similarity (Sentence-Transformers) - Meaning & context
+2. TF-IDF Similarity - Keyword & terminology match
+3. Skill Gap Analysis - Direct required/preferred skill comparison
+4. Configurable Hybrid Scoring - Balanced multi-metric score
 
 Author: Ashish Kashyap
 Project: AI Resume Analyzer - EduVitae Services
@@ -14,6 +14,34 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+
+# Import semantic matcher
+try:
+    from utils.semantic_matcher import calculate_semantic_similarity, get_model_info
+    SEMANTIC_AVAILABLE = True
+except ImportError:
+    SEMANTIC_AVAILABLE = False
+    print("Warning: Semantic matcher not available, falling back to TF-IDF only.")
+
+
+# ──────────────────────────────────────────────────────────────
+# Configurable Scoring Weights
+# ──────────────────────────────────────────────────────────────
+
+# Default hybrid scoring weights (must sum to 1.0)
+DEFAULT_SCORING_WEIGHTS = {
+    'semantic': 0.35,      # Meaning and context match
+    'tfidf': 0.30,         # Exact keyword and terminology match
+    'required': 0.25,      # Essential required skills
+    'preferred': 0.10,     # Bonus/preferred skills
+}
+
+# Fallback weights when semantic matching is unavailable
+FALLBACK_SCORING_WEIGHTS = {
+    'tfidf': 0.40,
+    'required': 0.45,
+    'preferred': 0.15,
+}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -180,22 +208,40 @@ JOB_DESCRIPTIONS = {
 }
 
 
+# ──────────────────────────────────────────────────────────────
+# TF-IDF Matching (Existing Implementation Preserved)
+# ──────────────────────────────────────────────────────────────
+
 def calculate_tfidf_similarity(resume_text, job_description):
     """
     Calculate similarity between resume and job description
     using TF-IDF vectorization and cosine similarity.
+
+    Preserved from original implementation for backward compatibility
+    and keyword-level matching.
     """
-    vectorizer = TfidfVectorizer(
-        stop_words='english',
-        max_features=5000,
-        ngram_range=(1, 2),  # Consider both unigrams and bigrams
-    )
+    if not resume_text or not job_description:
+        return 0.0
 
-    tfidf_matrix = vectorizer.fit_transform([resume_text, job_description])
-    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+    try:
+        vectorizer = TfidfVectorizer(
+            stop_words='english',
+            max_features=5000,
+            ngram_range=(1, 2),  # Consider both unigrams and bigrams
+        )
 
-    return round(similarity * 100, 2)
+        tfidf_matrix = vectorizer.fit_transform([resume_text, job_description])
+        similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
 
+        return round(float(similarity) * 100, 2)
+    except Exception as e:
+        print(f"Error calculating TF-IDF similarity: {e}")
+        return 0.0
+
+
+# ──────────────────────────────────────────────────────────────
+# Skill Matching & Gap Analysis
+# ──────────────────────────────────────────────────────────────
 
 def analyze_skill_match(resume_skills, job_required, job_preferred):
     """
@@ -235,12 +281,51 @@ def analyze_skill_match(resume_skills, job_required, job_preferred):
     }
 
 
+# ──────────────────────────────────────────────────────────────
+# Hybrid Scoring System
+# ──────────────────────────────────────────────────────────────
+
+def calculate_hybrid_score(semantic_score, tfidf_score, skill_analysis, weights=None):
+    """
+    Calculate hybrid match score combining:
+    1. Semantic similarity (Sentence-Transformers)
+    2. TF-IDF similarity (Keyword overlap)
+    3. Required skills match percentage
+    4. Preferred skills match percentage
+
+    Args:
+        semantic_score (float): Semantic similarity (0-100)
+        tfidf_score (float): TF-IDF similarity (0-100)
+        skill_analysis (dict): Output from analyze_skill_match()
+        weights (dict, optional): Custom weights dictionary
+
+    Returns:
+        float: Hybrid score (0-100)
+    """
+    if weights is None:
+        weights = DEFAULT_SCORING_WEIGHTS
+
+    required_pct = skill_analysis['required_match_percentage']
+
+    total_preferred = len(skill_analysis['matched_preferred']) + len(skill_analysis['missing_preferred'])
+    preferred_pct = (len(skill_analysis['matched_preferred']) / total_preferred * 100) if total_preferred > 0 else 0
+
+    # Calculate weighted hybrid score
+    hybrid = (
+        semantic_score * weights.get('semantic', 0.35) +
+        tfidf_score * weights.get('tfidf', 0.30) +
+        required_pct * weights.get('required', 0.25) +
+        preferred_pct * weights.get('preferred', 0.10)
+    )
+
+    return round(min(100.0, max(0.0, hybrid)), 1)
+
+
 def calculate_overall_score(tfidf_score, skill_analysis):
     """
-    Calculate overall match score combining TF-IDF similarity
-    and skill matching with weighted formula.
+    Legacy overall score calculation (preserved for backward compatibility).
+    Uses the original 40/45/15 weighting formula.
     """
-    # Weights: 40% TF-IDF content similarity, 45% required skills, 15% preferred skills
     tfidf_weight = 0.40
     required_weight = 0.45
     preferred_weight = 0.15
@@ -268,6 +353,10 @@ def get_score_label(score):
     else:
         return {'label': 'Low Match', 'color': 'danger', 'emoji': '🔴'}
 
+
+# ──────────────────────────────────────────────────────────────
+# Recommendations Engine
+# ──────────────────────────────────────────────────────────────
 
 def generate_recommendations(skill_analysis, score):
     """Generate actionable recommendations based on skill gap analysis."""
@@ -318,20 +407,32 @@ def generate_recommendations(skill_analysis, score):
     return recommendations
 
 
-def match_resume_to_job(resume_text, resume_skills, job_key):
+# ──────────────────────────────────────────────────────────────
+# Main Matching Functions (Updated with Hybrid Approach)
+# ──────────────────────────────────────────────────────────────
+
+def match_resume_to_job(resume_text, resume_skills, job_key, weights=None):
     """
     Main matching function: Match a resume against a specific job.
-    Returns comprehensive analysis with scores and recommendations.
+    Returns comprehensive analysis with BOTH separate and hybrid scores.
+
+    Backward compatible: Maintains all existing return fields while adding new ones.
     """
     if job_key not in JOB_DESCRIPTIONS:
         return {'error': f'Job role "{job_key}" not found.'}
 
     job = JOB_DESCRIPTIONS[job_key]
 
-    # Calculate TF-IDF similarity
+    # 1. Calculate TF-IDF similarity (keyword matching)
     tfidf_score = calculate_tfidf_similarity(resume_text, job['description'])
 
-    # Analyze skill match
+    # 2. Calculate Semantic similarity (meaning matching)
+    if SEMANTIC_AVAILABLE:
+        semantic_score = calculate_semantic_similarity(resume_text, job['description'])
+    else:
+        semantic_score = tfidf_score  # Fallback
+
+    # 3. Analyze skill match
     all_resume_skills = resume_skills.get('technical', []) + resume_skills.get('soft', [])
     skill_analysis = analyze_skill_match(
         all_resume_skills,
@@ -339,35 +440,54 @@ def match_resume_to_job(resume_text, resume_skills, job_key):
         job['preferred_skills']
     )
 
-    # Calculate overall score
-    overall_score = calculate_overall_score(tfidf_score, skill_analysis)
-    score_label = get_score_label(overall_score)
+    # 4. Calculate scores
+    if SEMANTIC_AVAILABLE:
+        hybrid_score = calculate_hybrid_score(semantic_score, tfidf_score, skill_analysis, weights)
+        overall_score = hybrid_score  # Use hybrid score as primary
+    else:
+        hybrid_score = calculate_overall_score(tfidf_score, skill_analysis)
+        overall_score = hybrid_score
 
-    # Generate recommendations
+    score_label = get_score_label(overall_score)
     recommendations = generate_recommendations(skill_analysis, overall_score)
 
     return {
+        # Core details
         'job_title': job['title'],
         'job_company': job['company'],
-        'tfidf_score': tfidf_score,
+
+        # Separate metrics
+        'semantic_score': semantic_score,      # NEW: Semantic similarity
+        'tfidf_score': tfidf_score,            # EXISTING: TF-IDF similarity
+        'hybrid_score': hybrid_score,          # NEW: Hybrid score
+        'overall_score': overall_score,        # EXISTING: (backward compat)
+
+        # Skill & gap analysis
         'skill_analysis': skill_analysis,
-        'overall_score': overall_score,
         'score_label': score_label,
         'recommendations': recommendations,
+
+        # Metadata
+        'is_hybrid': SEMANTIC_AVAILABLE,
+        'model_used': 'all-MiniLM-L6-v2' if SEMANTIC_AVAILABLE else 'TF-IDF only',
+        'scoring_weights': weights or (DEFAULT_SCORING_WEIGHTS if SEMANTIC_AVAILABLE else FALLBACK_SCORING_WEIGHTS),
     }
 
 
-def match_all_jobs(resume_text, resume_skills):
-    """Match resume against ALL job descriptions and rank them."""
+def match_all_jobs(resume_text, resume_skills, weights=None):
+    """
+    Match resume against ALL job descriptions and rank them.
+    Uses hybrid scoring for ranking.
+    """
     results = []
 
     for key in JOB_DESCRIPTIONS:
-        result = match_resume_to_job(resume_text, resume_skills, key)
+        result = match_resume_to_job(resume_text, resume_skills, key, weights)
         if 'error' not in result:
             result['job_key'] = key
             results.append(result)
 
-    # Sort by overall score descending
+    # Sort by overall/hybrid score descending
     results.sort(key=lambda x: x['overall_score'], reverse=True)
 
     return results
