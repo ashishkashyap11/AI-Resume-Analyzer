@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block title %}Resume Analysis Results - AI Resume Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-poll me-2 text-primary"></i>Resume Analysis Results
+            </h2>
+            <p class="text-muted mb-0">Comprehensive breakdown of your resume</p>
+        </div>
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i>Analyze Another Resume
+        </a>
+    </div>
+
+    <!-- Candidate Profile Card -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="fw-bold text-dark mb-2">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                        {{ parsed.contact.name if parsed.contact.name else 'Candidate Profile' }}
+                    </h3>
+                    <div class="d-flex flex-wrap gap-3 text-muted">
+                        {% if parsed.contact.email %}
+                        <span><i class="fas fa-envelope me-1 text-primary"></i>{{ parsed.contact.email }}</span>
+                        {% endif %}
+                        {% if parsed.contact.phone %}
+                        <span><i class="fas fa-phone me-1 text-success"></i>{{ parsed.contact.phone }}</span>
+                        {% endif %}
+                        {% if parsed.contact.linkedin %}
+                        <span><i class="fab fa-linkedin me-1 text-info"></i>{{ parsed.contact.linkedin }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <span class="badge bg-primary fs-6 px-3 py-2">
+                        <i class="fas fa-brain me-1"></i>{{ parsed.skills.total_count }} Skills Detected
+                    </span>
+                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                        <i class="fas fa-file-word me-1"></i>{{ parsed.word_count }} Words
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single Job Match Result -->
+    {% if job_match %}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white p-3">
+            <h4 class="mb-0">
+                <i class="fas fa-briefcase me-2"></i>Target Role: {{ job_match.job_title }} ({{ job_match.job_company }})
+            </h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="row align-items-center mb-4">
+                <div class="col-md-4 text-center">
+                    <div class="score-circle mx-auto score-{{ job_match.score_label.color }}">
+                        <div class="score-value">{{ job_match.overall_score }}%</div>
+                        <div class="score-text">Match Score</div>
+                    </div>
+                    <span class="badge bg-{{ job_match.score_label.color }} fs-6 mt-2 px-3 py-2">
+                        {{ job_match.score_label.emoji }} {{ job_match.score_label.label }}
+                    </span>
+                </div>
+                <div class="col-md-8">
+                    <h5 class="fw-bold mb-3">Score Breakdown</h5>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>TF-IDF Content Similarity</span>
+                            <span class="fw-bold">{{ job_match.tfidf_score }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-info" style="width: {{ job_match.tfidf_score }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Required Skills Match</span>
+                            <span class="fw-bold">{{ job_match.skill_analysis.required_match_percentage }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" style="width: {{ job_match.skill_analysis.required_match_percentage }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Gap Analysis -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-light border-0 p-3 h-100">
+                        <h6 class="fw-bold text-success mb-2">
+                            <i class="fas fa-check-circle me-1"></i>Matched Required Skills ({{ job_match.skill_analysis.matched_required|length }})
+                        </h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for skill in job_match.skill_analysis.matched_required %}
+                            <span class="badge bg-success">{{ skill }}</span>
+                            {% else %}
+                            <span class="text-muted">No required skills matched</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light border-0 p-3 h-100">
+                        <h6 class="fw-bold text-danger mb-2">
+                            <i class="fas fa-times-circle me-1"></i>Missing Required Skills ({{ job_match.skill_analysis.missing_required|length }})
+                        </h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for skill in job_match.skill_analysis.missing_required %}
+                            <span class="badge bg-danger">{{ skill }}</span>
+                            {% else %}
+                            <span class="text-muted">All required skills matched!</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <h5 class="fw-bold mb-3"><i class="fas fa-lightbulb me-2 text-warning"></i>Actionable Recommendations</h5>
+            <div class="list-group">
+                {% for rec in job_match.recommendations %}
+                <div class="list-group-item list-group-item-action d-flex align-items-start p-3">
+                    <span class="fs-4 me-3">{{ rec.icon }}</span>
+                    <div>
+                        <h6 class="fw-bold mb-1">{{ rec.title }}</h6>
+                        <p class="mb-0 text-muted">{{ rec.detail }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Jobs Matches -->
+    {% if all_matches %}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white p-3">
+            <h4 class="mb-0">
+                <i class="fas fa-list-ol me-2"></i>Job Fit Ranking (All Roles)
+            </h4>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Job Role</th>
+                            <th>Company</th>
+                            <th>Overall Match</th>
+                            <th>Required Skills Match</th>
+                            <th>TF-IDF Score</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in all_matches %}
+                        <tr>
+                            <td class="fw-bold">{{ loop.index }}</td>
+                            <td class="fw-semibold">{{ match.job_title }}</td>
+                            <td class="text-muted">{{ match.job_company }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold me-2">{{ match.overall_score }}%</span>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-{{ match.score_label.color }}" style="width: {{ match.overall_score }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ match.skill_analysis.required_match_percentage }}%</td>
+                            <td>{{ match.tfidf_score }}%</td>
+                            <td>
+                                <span class="badge bg-{{ match.score_label.color }}">
+                                    {{ match.score_label.emoji }} {{ match.score_label.label }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Extracted Resume Details -->
+    <div class="row g-4">
+        <!-- Technical Skills -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-code me-2"></i>Technical Skills ({{ parsed.skills.technical|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in parsed.skills.technical %}
+                        <span class="badge bg-primary-subtle text-primary-emphasis fs-6 px-3 py-2">{{ skill }}</span>
+                        {% else %}
+                        <p class="text-muted">No technical skills detected.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soft Skills -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Soft Skills ({{ parsed.skills.soft|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in parsed.skills.soft %}
+                        <span class="badge bg-success-subtle text-success-emphasis fs-6 px-3 py-2">{{ skill }}</span>
+                        {% else %}
+                        <p class="text-muted">No soft skills detected.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Education -->
+        {% if parsed.education %}
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Education</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for edu in parsed.education %}
+                        <li class="list-group-item">
+                            <i class="fas fa-university me-2 text-info"></i>{{ edu.text }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Certifications -->
+        {% if parsed.certifications %}
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-certificate me-2"></i>Certifications ({{ parsed.certifications|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for cert in parsed.certifications %}
+                        <li class="list-group-item">
+                            <i class="fas fa-award me-2 text-warning"></i>{{ cert }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

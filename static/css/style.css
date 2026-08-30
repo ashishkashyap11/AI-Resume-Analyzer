@@ -1,0 +1,154 @@
+/* Main Stylesheet for AI Resume Analyzer */
+
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --dark-bg: #1e1b4b;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f8fafc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* Upload Card */
+.upload-card {
+    border-radius: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: #ffffff;
+}
+
+.upload-zone {
+    border: 2px dashed #c7d2fe;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    background-color: #eef2ff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: var(--primary-color);
+    background-color: #e0e7ff;
+}
+
+.upload-zone input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Score Circle */
+.score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: bold;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.score-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.score-primary {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+}
+
+.score-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.score-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.score-value {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.score-text {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+/* Feature Card */
+.feature-card {
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Progress bar */
+.progress {
+    border-radius: 8px;
+    background-color: #e2e8f0;
+}
+
+.progress-bar {
+    border-radius: 8px;
+    transition: width 0.8s ease-in-out;
+}
+
+/* Footer sticky */
+footer {
+    margin-top: auto;
+}

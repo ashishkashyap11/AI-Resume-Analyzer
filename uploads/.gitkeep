@@ -1,0 +1,7 @@
+# Uploads Directory
+
+This directory stores temporarily uploaded resume files during analysis.
+
+All files are automatically deleted after processing for security and privacy.
+
+**Note:** This directory is excluded from version control via `.gitignore`.

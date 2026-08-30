@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}AI Resume Analyzer - Upload Your Resume{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="fas fa-robot me-2"></i>AI Resume Analyzer
+        </h1>
+        <p class="lead mb-4">
+            Upload your resume and get instant AI-powered analysis with job matching,
+            skill gap identification, and actionable recommendations.
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="fas fa-brain me-1"></i>NLP Parsing
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="fas fa-chart-bar me-1"></i>TF-IDF Analysis
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="fas fa-bullseye me-1"></i>Skill Gap Detection
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2">
+                        <i class="fas fa-star me-1"></i>Job Matching
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg border-0 upload-card">
+                    <div class="card-body p-5">
+                        <h3 class="card-title text-center mb-4">
+                            <i class="fas fa-cloud-upload-alt me-2 text-primary"></i>
+                            Upload Your Resume
+                        </h3>
+
+                        <form action="/analyze" method="POST" enctype="multipart/form-data" id="uploadForm">
+                            <!-- File Upload -->
+                            <div class="mb-4">
+                                <label for="resume" class="form-label fw-semibold">
+                                    <i class="fas fa-file-pdf me-1"></i>Resume File
+                                </label>
+                                <div class="upload-zone" id="uploadZone">
+                                    <input type="file" class="form-control" id="resume" name="resume"
+                                           accept=".pdf,.docx" required>
+                                    <div class="upload-placeholder text-center mt-3" id="uploadPlaceholder">
+                                        <i class="fas fa-file-upload fa-3x text-muted mb-2"></i>
+                                        <p class="text-muted">Drag & drop or click to upload</p>
+                                        <small class="text-muted">Supported: PDF, DOCX (Max 16MB)</small>
+                                    </div>
+                                    <div class="upload-preview d-none" id="uploadPreview">
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                        <span class="ms-2 fw-semibold" id="fileName"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Job Role Selection -->
+                            <div class="mb-4">
+                                <label for="job_role" class="form-label fw-semibold">
+                                    <i class="fas fa-briefcase me-1"></i>Select Target Job Role
+                                </label>
+                                <select class="form-select form-select-lg" id="job_role" name="job_role">
+                                    <option value="all" selected>🔍 Match Against All Roles (Recommended)</option>
+                                    {% for job in jobs %}
+                                    <option value="{{ job.key }}">{{ job.title }} - {{ job.company }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">
+                                    Choose a specific role or match against all to find your best fit.
+                                </small>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn">
+                                    <i class="fas fa-search-plus me-2"></i>Analyze Resume
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-3">
+                            <i class="fas fa-upload fa-2x"></i>
+                        </div>
+                        <h5>1. Upload Resume</h5>
+                        <p class="text-muted">Upload your PDF or DOCX resume file securely.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3">
+                            <i class="fas fa-brain fa-2x"></i>
+                        </div>
+                        <h5>2. NLP Parsing</h5>
+                        <p class="text-muted">AI extracts skills, education, and experience automatically.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon bg-warning text-white rounded-circle mx-auto mb-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h5>3. TF-IDF Matching</h5>
+                        <p class="text-muted">Cosine similarity scores your resume against job descriptions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4 feature-card">
+                    <div class="card-body">
+                        <div class="feature-icon bg-danger text-white rounded-circle mx-auto mb-3">
+                            <i class="fas fa-lightbulb fa-2x"></i>
+                        </div>
+                        <h5>4. Get Insights</h5>
+                        <p class="text-muted">Receive skill gap analysis and improvement recommendations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
