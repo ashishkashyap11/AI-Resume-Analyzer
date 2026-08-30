@@ -133,6 +133,7 @@ AI-Resume-Analyzer/
 ├── .gitignore                  # Git ignore rules
 ├── .env.example                # Environment variables template
 ├── README.md                   # Project documentation
+├── LICENSE                     # MIT License
 │
 ├── utils/                      # Core logic modules
 │   ├── __init__.py
@@ -171,12 +172,15 @@ cd AI-Resume-Analyzer
 ```
 
 ### **Step 2: Create Virtual Environment**
+
+**Windows:**
 ```bash
-# Windows
 python -m venv venv
 venv\Scripts\activate
+```
 
-# macOS/Linux
+**macOS/Linux:**
+```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
@@ -188,10 +192,18 @@ pip install -r requirements.txt
 
 ### **Step 4: Download NLTK Data**
 ```bash
-python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('averaged_perceptron_tagger')"
+python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('averaged_perceptron_tagger'); nltk.download('punkt_tab')"
 ```
 
 ### **Step 5: Set Up Environment (Optional)**
+
+**Windows:**
+```bash
+copy .env.example .env
+# Edit .env with your preferred configuration
+```
+
+**macOS/Linux:**
 ```bash
 cp .env.example .env
 # Edit .env with your preferred configuration
@@ -239,13 +251,17 @@ The app will start on `http://localhost:5000`
 
 ## 📸 Screenshots
 
-> **Note:** Add screenshots here after deployment
+### Home Page - Upload Interface
+![Home Page - Upload your resume and select target job role](https://via.placeholder.com/800x450/4f46e5/ffffff?text=Upload+Interface+-+Add+Screenshot+Here)
 
-**Home Page**
-![Home Page](screenshots/home.png)
+*The landing page features a clean upload interface with drag-and-drop support and job role selection.*
 
-**Analysis Results**
-![Results Dashboard](screenshots/results.png)
+### Analysis Results Dashboard
+![Results Dashboard - Comprehensive match analysis with scores and recommendations](https://via.placeholder.com/800x450/10b981/ffffff?text=Results+Dashboard+-+Add+Screenshot+Here)
+
+*The results page displays match scores, skill breakdowns, gap analysis, and actionable recommendations.*
+
+> **Note:** Screenshots will be added after deployment. The application features a modern, responsive design with Bootstrap 5.
 
 ---
 
@@ -260,7 +276,7 @@ The app will start on `http://localhost:5000`
 - [ ] Support for more file formats (TXT, RTF)
 - [ ] Add real-time job market data integration
 - [ ] Multi-language resume support
-- [ ] Deploy to cloud (AWS/Heroku/Vercel)
+- [ ] Deploy to cloud (Render/Railway/Vercel)
 
 ---
 
@@ -269,10 +285,8 @@ The app will start on `http://localhost:5000`
 **Ashish Kashyap**  
 Computer Science Engineering Student | Data Science Enthusiast
 
-- 📧 Email: ashishkashyap.appu@gmail.com
 - 🔗 LinkedIn: [linkedin.com/in/ashishkashyap18](https://linkedin.com/in/ashishkashyap18)
 - 💻 GitHub: [github.com/ashishkashyap11](https://github.com/ashishkashyap11)
-- 📍 Location: Solan, Himachal Pradesh, India
 
 **Education:** B.Tech in Computer Science Engineering, Jaypee University of Information Technology (2022-2026)
 
@@ -291,16 +305,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - **NLTK** — for NLP capabilities
 - **Flask** — for the lightweight web framework
 - **Bootstrap** — for responsive UI components
-
----
-
-## 📞 Contact
-
-For queries, suggestions, or collaboration opportunities:
-
-- Open an issue on GitHub
-- Email: ashishkashyap.appu@gmail.com
-- LinkedIn: [Ashish Kashyap](https://linkedin.com/in/ashishkashyap18)
 
 ---
 
