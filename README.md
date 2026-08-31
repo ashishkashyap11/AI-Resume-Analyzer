@@ -320,7 +320,7 @@ The app will start on `http://localhost:5000`
 **Ashish Kashyap**  
 Computer Science Engineering Student | Data Science Enthusiast
 
-- 🔗 LinkedIn: [linkedin.com/in/ashishkashyap18](https://linkedin.com/in/ashishkashyap18)
+- 🔗 LinkedIn: [linkedin.com/in/ashishkashyap18](https://linkedin.com/in/ashishkashyap11)
 - 💻 GitHub: [github.com/ashishkashyap11](https://github.com/ashishkashyap11)
 
 **Education:** B.Tech in Computer Science Engineering, Jaypee University of Information Technology (2022-2026)
